@@ -23,33 +23,6 @@ function Calculo (con){
 
 module.exports = Calculo;
 
-// Calculo.prototype.Inicializar = function(parametros){
-	// if(!parametros) parametros = {};
-	// if(!parametros.candles) throw new Error("No llegaron los candles WMA");
-	// if(!parametros.periodoHMA) parametros.periodoHMA = 25;
-
-	// var primerWMA = [],
-	// 	segundoWMA = [];
-
-	// //seteamos parametros para calcular el primer WMA
-	// parametros.candles = candela;
-	// parametros.periodo = periodo/2;
-	// primerWMA = Calculo.WMA(parametros);
-	// // console.log(primerWMA);
-
-	// //seteamos parametros para calcular el segundo WMA
-	// parametros.candles = primerWMA;
-	// parametros.periodo = periodo;
-	// segundoWMA = Calculo.WMA(parametros);
-	// // console.log(segundoWMA);
-
-	// //Calculamos el HMA 
-	// parametros.periodo =  Math.floor(Math.sqrt(periodo));
-	// parametros.primerWMA = primerWMA;
-	// parametros.segundoWMA = segundoWMA;
-	// Calculo.HMA(parametros);
-// }
-
 Calculo.prototype.NuevoValor = function(candle){
 	"use strict";
 	if(!candle) throw new Error("No llego el candle");
@@ -70,8 +43,8 @@ Calculo.prototype.NuevoValor = function(candle){
 	this.regresionLinealOrdenada.shift();
 	this.regresionLinealPendiente.shift();
 
-	// this.timestamps.push(candle.tiemstamp);
-	this.valores.push(candle);
+    this.timestamps.push(candle.timestamp);
+	this.valores.push(candle.valor);
 
 	parametros.periodo = Math.floor(this.config.periodo / 2);
 	this.primerWMA.push(this.WMA(parametros));
@@ -85,13 +58,14 @@ Calculo.prototype.NuevoValor = function(candle){
 	parametros.periodo = Math.floor(Math.sqrt(this.config.periodo));
 	parametros.vector = this.vectorCalculadoHMA;
 
+
 	this.HMA.push(this.WMA(parametros));
 
-	// this.derivada1.push();
-	// this.derivada2.push();
-	// this.regresionLinealOrdenada.push();
-	// this.regresionLinealPendiente.push();
-
+	this.derivada1.push(this.CalculoDerivada1());
+	this.derivada2.push(this.CalculoDerivada2());
+	
+	this.regresionLinealPendiente.push(this.CalcularRegresionLinealPendiente());
+	this.regresionLinealOrdenada.push(this.CalcularRegresionLinealOrdenada());
 }
 
 Calculo.prototype.WMA = function(parametros){
@@ -109,4 +83,63 @@ Calculo.prototype.WMA = function(parametros){
 	};
 
  	return (sumaParcial/sumaDenominador);
+}
+
+Calculo.prototype.CalculoDerivada1 = function(){
+	"use strict";
+	return (this.HMA[this.HMA.length-1]-this.HMA[this.HMA.length-2])/(this.timestamps[this.timestamps.length-1]-this.timestamps[this.timestamps.length-2]);
+}
+
+Calculo.prototype.CalculoDerivada2 = function(){
+	"use strict";
+	return (this.derivada1[this.derivada1.length-1]-this.derivada1[this.derivada1.length-2])/(this.timestamps[this.timestamps.length-1]-this.timestamps[this.timestamps.length-2]);
+}
+
+Calculo.prototype.CalcularRegresionLinealPendiente = function(){
+	"use strict";
+	var resultado,
+		sumaTime = 0,
+		sumaValores = 0,
+		promedioTime=0,
+		promedioValores=0,
+		sumatoriaNumerador=0,
+		sumatoriaDenominador=0; 
+
+	for (var i = 0; i < this.timestamps.length; i++) {
+		sumaTime +=this.timestamps[i];
+		sumaValores +=this.valores[i];
+	};
+
+	promedioTime = sumaTime/this.timestamps.length;
+	promedioValores = sumaValores/this.valores.length;
+
+
+	for (var i = 0; i < this.timestamps.length; i++) {
+		sumatoriaNumerador += (this.timestamps[i]-promedioTime)*(this.valores[i] - promedioValores);
+		sumatoriaDenominador+= (this.timestamps[i]-promedioTime)*(this.timestamps[i]-promedioTime);
+	};
+
+	if(sumatoriaDenominador != 0)
+		return sumatoriaNumerador/sumatoriaDenominador;
+	else
+		throw new Error("El denominador es 0..cagaste");
+}
+
+Calculo.prototype.CalcularRegresionLinealOrdenada = function(){
+	"use strict";
+	var resultado,
+		sumaTime = 0,
+		sumaValores = 0,
+		promedioTime=0,
+		promedioValores=0;
+
+	for (var i = 0; i < this.timestamps.length; i++) {
+		sumaTime +=this.timestamps[i];
+		sumaValores +=this.valores[i];
+	};
+
+	promedioTime = sumaTime/this.timestamps.length;
+	promedioValores = sumaValores/this.valores.length;
+	
+	return promedioValores-(this.regresionLinealPendiente[this.regresionLinealPendiente.length-1]*promedioTime);
 }
