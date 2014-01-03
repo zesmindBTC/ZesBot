@@ -5,7 +5,6 @@ config.secret = '21686c96b6520c60c452ebc9742b3f4d30382d97a80a96b298886b3fd986dbc
 
 //Configuracion para operar
 config.pair = 'btc_usd';
-config.seconds = 10800;
-config.periodo = 10;
-config.candlesCount = 200;
+config.periodo = 10;    //periodo para realizar calculos
+config.candlesCount = 12; 
 module.exports = config;

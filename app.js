@@ -1,7 +1,6 @@
 var config = require("./config"),
 	btce = new require("./exchanges/btc-e")(config),
-	mongoClient = require('mongodb').MongoClient,
-	ema = new require("./methods/EMA")(btce);
+	mongoClient = require('mongodb').MongoClient;
 
 	
 mongoClient.connect('mongodb://nodejitsu:d558c04811085a87670aa6a1c38c1efe@dharma.mongohq.com:10051/nodejitsudb6947821225', function(err, db) {
