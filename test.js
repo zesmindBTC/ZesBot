@@ -16,13 +16,20 @@ var config = require("./config"),
 // 	Operacion.Operar(parametros);
 // };
 
-var parametros = {
-		type:'buy',
-		pair:'btc_usd',
-		amount: 1,
-		rate: 100
-	};
+// var parametros = {
+// 		type:'sell',
+// 		pair:'btc_usd',
+// 		amount: 0.02,
+// 		rate: 1000
+// };
 
- btcE.placeOrder(parametros);
+// btcE.placeOrder(parametros);
 
-//btcE.cancelOrder(110503872);
+// setTimeout(function(){Operacion.VerificarOrden();},10000);
+//Operacion.Comprar();
+//Operacion.Vender();
+
+btcE.getInfoAccount(function(err, data) {
+  if (!err) console.log(data)
+  else console.log(err)
+});

@@ -9,7 +9,7 @@ function Trader (con){
 
 	this.config = con;
 	this.btce = new BTCE(con.key, con.secret);
-	this.activeOrders=[];
+	this.activeOrders=0;
 
 	_.bindAll(this);
 }
@@ -28,15 +28,9 @@ Trader.prototype.getTicker = function(pair,callback){
 }
 
 //Devuelve la información actual 
-Trader.prototype.getInfoAccount = function(){
+Trader.prototype.getInfoAccount = function(callback){
 
-	this.btce.getInfo(function(err, data) {
-	  if (!err){
-	  	console.log(data);	
-	  } 
-	  else 
-	  	console.log(err);
-	});
+	this.btce.getInfo(callback);
 }
 
 Trader.prototype.placeOrder = function(parametros){
@@ -48,32 +42,30 @@ Trader.prototype.placeOrder = function(parametros){
 
 	this.btce.trade({'pair': parametros.pair, 'type': parametros.type, 'rate': parametros.rate, 'amount': parametros.amount},_.bind(function(err, data) {
 	  if (!err){
-	  	console.log(data);
-	  	this.activeOrders.push(data.return.order_id);
-	  	console.log(this.activeOrders[this.activeOrders.length-1]);
+	  	this.activeOrders = data.return.order_id;
+	  	console.log(this.activeOrders);
 	  } 
 	  else console.log(err);
 	},this));
 }
 
 
-Trader.prototype.cancelOrder = function(order_id){
-	if(!order_id) throw new Error('Falta la orden');
-
-	this.btce.cancelOrder(order_id, _.bind(function(err, data) {
-	  var a = -1;
-	  if (!err){  	
-	  	console.log(data);
-	  	a = this.activeOrders.indexOf(data.return.order_id);
-	  	if(a != -1){
-	  		console.log(this.activeOrders[a]);
-	  		this.activeOrders.splice(index, 1);
-	  	}
+Trader.prototype.cancelOrder = function(callback){
+	this.btce.cancelOrder(this.activeOrders, _.bind(function(err, data) {
+	  if (!err){  		  	
+	  	this.activeOrders = 0;
+	  	callback();
 	  } 
 	  else console.log(err);
 	},this));
 }
 
+Trader.prototype.getDepth = function(parametros,callback){
+	if(!parametros) parametros = {};
+	if(!parametros.count) parametros.count = 100;
+	if(!parametros.pair) parametros.pair = this.config.pair;
 
+	this.btce.depth(parametros,callback);
+}
 
 

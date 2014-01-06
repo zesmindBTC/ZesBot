@@ -27,9 +27,7 @@ Calculo.prototype.NuevoValor = function(candle){
 	"use strict";
 	if(!candle) throw new Error("No llego el candle");
 
-	var parametros = {
-			vector : this.valores
-		};	
+	var parametros = {};	
 
 
 	this.timestamps.shift();
@@ -44,9 +42,11 @@ Calculo.prototype.NuevoValor = function(candle){
 	this.regresionLinealPendiente.shift();
 
     this.timestamps.push(candle.timestamp);
-	this.valores.push(candle.valor);
+	this.valores.push(candle[config.candleProperty]);
 
+	parametros.vector = this.valores;
 	parametros.periodo = Math.floor(this.config.periodo / 2);
+	
 	this.primerWMA.push(this.WMA(parametros));
 
 	parametros.periodo = this.config.periodo;
