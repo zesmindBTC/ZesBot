@@ -8,7 +8,8 @@ config.pair = 'btc_usd'; //PAIR PERMITIDOS: btc_usd,ltc_usd,nmc_usd,nvc_usd,ppc_
 config.periodo = 10;    //periodo para realizar calculos
 config.candlesCount = 12; 
 config.candleProperty = "valores";
-
+config.mongodbConnection = "mongodb://localhost:27017/nico1";
+config.candlePeriod = 300;
 
 config.InitialItemAmount = 1.7;
 config.usd = 1000;

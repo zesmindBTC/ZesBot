@@ -1,7 +1,9 @@
 var config = require("./config"),
 	Calculo = new require("./methods/Calculo")(config),
 	btcE = new require("./exchanges/btc-e")(config),
-	Operacion = new require("./methods/Operacion")(Calculo,btcE,config);
+	Operacion = new require("./methods/Operacion")(Calculo,btcE,config),
+	Candela = new require("./methods/Candle")(config,btcE),
+	mongoClient = require('mongodb').MongoClient;
 	
 
 	
@@ -29,7 +31,23 @@ var config = require("./config"),
 //Operacion.Comprar();
 //Operacion.Vender();
 
-btcE.getInfoAccount(function(err, data) {
-  if (!err) console.log(data)
-  else console.log(err)
+//btcE.getInfoAccount(function(err, data) {
+//  if (!err) console.log(data)
+//  else console.log(err)
+//});
+
+
+mongoClient.connect(config.mongodbConnection, function(err, db) {
+	"use strict";
+	
+	try
+	{
+		if(err) throw err;
+
+		Candela.createNewCandle(db);
+
+	}
+	catch(err){
+		console.log(err);
+	}		
 });
