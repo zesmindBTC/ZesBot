@@ -93,12 +93,12 @@ Candle.prototype.createNewCandle = function(db) {
         }
         else {  //Si timeLastCandle es <> 0, entonces verfico si se cumplio el lapso de una candlea nueva
             //Levanto el ultimo trade para hacer la diferencia respecto del ultimo candle y verificar si se cumplio el lapso
-         var callbackFindLastTrade =  fuction(err,result){
+         var callbackFindLastTrade =  function(err,result){
                 if (!err){
                     if (result.length > 0 ){
                         //verifico si se cumplio el lapso del candle
                         if ((result.date-this.timeLastCandle)>this.candlePeriod){
-                            collectionTrades.find({{date: {$gte:this.timeLastCandle, $lt:(this.timeLastCandle+this.candlePeriod)}}}).toArray(_.bind(this.callbackTradesPeriodoCandle,this));
+                            collectionTrades.find({date: {$gte:this.timeLastCandle, $lt:(this.timeLastCandle+this.candlePeriod)}}).toArray(_.bind(this.callbackTradesPeriodoCandle,this));
                         }
                     }
                     else{
@@ -111,7 +111,7 @@ Candle.prototype.createNewCandle = function(db) {
                 }
             };
 
-          collectionTrades.findOne({},{ sort: [['date':-1]]},_.bind(callbackFindLastTrade,this));
+          collectionTrades.findOne({},{sort: {'date':-1}},_.bind(callbackFindLastTrade,this));
 
 
         }
