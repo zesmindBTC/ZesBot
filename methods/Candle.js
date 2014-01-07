@@ -4,7 +4,7 @@ function Candle (con,Trader){
 	"use strict";
 
     if(!(this instanceof Candle))
-        return new Candle(con);
+        return new Candle(con,Trader);
 
 //var MONGOHQ_URL="mongodb://nodejitsu:de9720a1df0ff9ea226b0d60eaa61459@linus.mongohq.com:10032/nodejitsudb5735702882";
     this.candlePeriod = con.candlePeriod;
@@ -56,7 +56,7 @@ Candle.prototype.createNewCandle = function(db) {
 
 
                      candle.timeOpen = this.timeLastCandle;
-                     candle.timeClose = dateEnd;
+                     candle.timeClose = this.timeLastCandle+this.candlePeriod;
                      candle.openPrice = openPrice;
                      candle.closePrice = closePrice;
                      candle.minPrice = minPrice;
@@ -68,11 +68,18 @@ Candle.prototype.createNewCandle = function(db) {
 
                      if (maxPrice > 0) {
                          //return  candle;
-                         var callbackInsert = function(){
+                         var callbackInsert = function(err, result){
                              //incremento el tiempo de la ultima candlea
-                             this.timeLastCandle +=this.candlePeriod;
+                             if (!err){
+                                //aca se dispara el evento
+                                this.timeLastCandle +=this.candlePeriod;
+                                console.log(result);
+                            }
+                            else{
+                                console.log(err);
+                            }
                          };
-                         collectionCandle.insert(candle, _.bind(callbackInsert,this));
+                         collectionCandles.insert(candle, _.bind(callbackInsert,this));
                      }
                      else{
                          //hubo un problema en el calculo de la candlea, lanzo error.
@@ -95,10 +102,10 @@ Candle.prototype.createNewCandle = function(db) {
             //Levanto el ultimo trade para hacer la diferencia respecto del ultimo candle y verificar si se cumplio el lapso
          var callbackFindLastTrade =  function(err,result){
                 if (!err){
-                    if (result.length > 0 ){
+                    if (result){
                         //verifico si se cumplio el lapso del candle
                         if ((result.date-this.timeLastCandle)>this.candlePeriod){
-                            collectionTrades.find({date: {$gte:this.timeLastCandle, $lt:(this.timeLastCandle+this.candlePeriod)}}).toArray(_.bind(this.callbackTradesPeriodoCandle,this));
+                            collectionTrades.find({date: {$gte:this.timeLastCandle, $lt:(this.timeLastCandle+this.candlePeriod)}}).toArray(_.bind(callbackTradesPeriodoCandle,this));
                         }
                     }
                     else{
@@ -132,7 +139,7 @@ Candle.prototype.actualizarTimeLastCandle = function() {
 	    }
 	}
 
-	btcePublic.getTicker(this.pair, _.bind(callbackTicker,this));
+	this.btcePublic.getTicker(this.pair, _.bind(callbackTicker,this));
 }
 
 

@@ -9,7 +9,7 @@ config.periodo = 10;    //periodo para realizar calculos
 config.candlesCount = 200; 
 config.candleProperty = "valores";
 config.mongodbConnection = "mongodb://localhost:27017/nico1";
-config.candlePeriod = 300;
+config.candlePeriod = 30;
 
 config.InitialItemAmount = 1.7;
 config.usd = 1000;
