@@ -25,7 +25,7 @@ module.exports = Calculo;
 
 Calculo.prototype.NuevoValor = function(candle){
 	"use strict";
-	if(!candle) throw new Error("No llego el candle");
+	if(!candle) throw console.log("No llego el candle");
 
 	var parametros = {};	
 
@@ -41,7 +41,7 @@ Calculo.prototype.NuevoValor = function(candle){
 	this.regresionLinealOrdenada.shift();
 	this.regresionLinealPendiente.shift();
 
-    this.timestamps.push(candle.timestamp);
+    this.timestamps.push(candle[config.timeProperty]);
 	this.valores.push(candle[config.candleProperty]);
 
 	parametros.vector = this.valores;

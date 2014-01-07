@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var Util = require('util');
 
 function Operacion (Calculo,Trader,Config){
 	"use strict";
@@ -11,7 +12,10 @@ function Operacion (Calculo,Trader,Config){
 	this.trader = Trader;
 	this.contadorPrueba = 0; // se utiliza para que empiece a verificar a partir que se tengan procesadas 200 candels
 	_.bindAll(this);
+	this.on('newCandle', this.Operar);
 }
+
+Util.inherits(Operacion, Candle);
 
 module.exports = Operacion;
 
@@ -91,9 +95,14 @@ Operacion.prototype.Comprar = function(){
 			amount /= 100000000;
 			parametros.rate = actualPrice;
 			parametros.amount = amount;
-			//this.trader.placeOrder(parametros);
-			console.log(parametros);
-			setTimeout(function(){this.VerificarOrden();},10000);
+			if(parametros.amount >= 0.01){
+				//this.trader.placeOrder(parametros);
+				console.log(" Compro "+parametros);
+				//setTimeout(function(){this.VerificarOrden();},10000);
+			}
+			else{
+				console.log("no se opera porque no hay dolares para comprar");
+			}
 		}
 		else console.log(err);
 	};
@@ -129,9 +138,14 @@ Operacion.prototype.Vender = function(){
 				sell = Math.floor(sell);
 				sell /= 100000000;
 				parametros.amount = sell;
-				//this.trader.placeOrder(parametros);
-				console.log(parametros);
-				setTimeout(function(){this.VerificarOrden();},10000);
+				if(parametros.amount>=0.01){
+					//this.trader.placeOrder(parametros);
+					console.log(" Vendio "+parametros);
+					//setTimeout(function(){this.VerificarOrden();},10000);
+				}
+				else{
+					console.log("No se puede comprar una cantidad inferior a 0.01");
+				}
 			}
 			else console.log(err);
 		};

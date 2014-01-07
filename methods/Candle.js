@@ -1,4 +1,6 @@
 var _ = require('lodash');
+var EventEmitter = require('events').EventEmitter;
+var Util = require('util');
 
 function Candle (con,Trader){
 	"use strict";
@@ -13,6 +15,8 @@ function Candle (con,Trader){
     this.btcePublic = Trader;
 	_.bindAll(this);
 }
+
+Util.inherits(Candle, EventEmitter);
 
 module.exports = Candle;
 
@@ -69,10 +73,11 @@ Candle.prototype.createNewCandle = function(db) {
                      if (maxPrice > 0) {
                          //return  candle;
                          var callbackInsert = function(err, result){
-                             //incremento el tiempo de la ultima candlea
-                             if (!err){
+                            //incremento el tiempo de la ultima candlea
+                            if (!err){
                                 //aca se dispara el evento
                                 this.timeLastCandle +=this.candlePeriod;
+                                this.emit('newCandle',result);
                                 console.log(result);
                             }
                             else{

@@ -36,18 +36,3 @@ var config = require("./config"),
 //  else console.log(err)
 //});
 
-
-mongoClient.connect(config.mongodbConnection, function(err, db) {
-	"use strict";
-	
-	try
-	{
-		if(err) throw err;
-
-		Candela.createNewCandle(db);
-
-	}
-	catch(err){
-		console.log(err);
-	}		
-});
