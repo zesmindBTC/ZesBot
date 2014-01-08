@@ -9,7 +9,7 @@ config.periodo = 4;    //periodo para realizar calculos HMA 10
 config.candlesCount = 5;  //A partir de que candle se empieza a operar 
 config.candleProperty = "avgAmountPrice"; 
 config.timeProperty = "timeClose";
-config.mongodbConnection = "mongodb://localhost:27017/nico1";
+config.mongodbConnection = "mongodb://nodejitsu:2a714a4c81707a77b8b5cad1ef44eb65@linus.mongohq.com:10050/nodejitsudb3696440756";
 config.candlePeriod = 10; //Periodo entre candle.
 
 config.InitialItemAmount = 1.7;

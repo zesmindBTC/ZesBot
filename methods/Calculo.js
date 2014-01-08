@@ -41,8 +41,8 @@ Calculo.prototype.NuevoValor = function(candle){
 	this.regresionLinealOrdenada.shift();
 	this.regresionLinealPendiente.shift();
 
-    this.timestamps.push(candle[config.timeProperty]);
-	this.valores.push(candle[config.candleProperty]);
+    this.timestamps.push(candle[this.config.timeProperty]);
+	this.valores.push(candle[this.config.candleProperty]);
 
 	parametros.vector = this.valores;
 	parametros.periodo = Math.floor(this.config.periodo / 2);
@@ -66,6 +66,13 @@ Calculo.prototype.NuevoValor = function(candle){
 	
 	this.regresionLinealPendiente.push(this.CalcularRegresionLinealPendiente());
 	this.regresionLinealOrdenada.push(this.CalcularRegresionLinealOrdenada());
+	console.log(this.primerWMA);
+	console.log(this.segundoWMA);
+	console.log(this.HMA);
+	console.log(this.derivada1);
+	console.log(this.derivada2);
+	console.log(this.regresionLinealPendiente);
+	console.log(this.regresionLinealOrdenada);
 }
 
 Calculo.prototype.WMA = function(parametros){

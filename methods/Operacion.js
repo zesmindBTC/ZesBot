@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var Util = require('util');
 
 function Operacion (Calculo,Trader,Config){
 	"use strict";
@@ -11,16 +10,15 @@ function Operacion (Calculo,Trader,Config){
 	this.calculo = Calculo;
 	this.trader = Trader;
 	this.contadorPrueba = 0; // se utiliza para que empiece a verificar a partir que se tengan procesadas 200 candels
+	this.primeraCondicion = false; 
 	_.bindAll(this);
-	this.on('newCandle', this.Operar);
 }
 
-Util.inherits(Operacion, Candle);
 
 module.exports = Operacion;
 
 Operacion.prototype.Operar = function(candle){
-	if(!candle){
+	if(candle){
 		this.calculo.NuevoValor(candle);
 		
 		this.contadorPrueba += 1;
@@ -50,9 +48,14 @@ Operacion.prototype.Verificar = function(){
 		sUC = 1;
 	}
 
-	if((s1*s2*sUC)>0)	
-		this.Comprar();
-	
+	if((s1*s2*sUC)>0){
+		if(this.primeraCondicion){
+			this.Comprar();	
+		}
+		else
+			this.primeraCondicion = true;
+	}	
+		
 	if(this.calculo.derivada2[this.config.candlesCount-1] < 0)
 		s3 = 1;
 
@@ -60,8 +63,13 @@ Operacion.prototype.Verificar = function(){
 		sUV = 1;
 	}
 
-	if((s1*s3*sUV)>0)
-		this.Vender();	
+	if((s1*s3*sUV)>0){
+		if(this.primeraCondicion){
+			this.Vender();	
+		}
+		else
+			this.primeraCondicion = true;
+	}		
 }
 
 Operacion.prototype.Comprar = function(){
@@ -97,7 +105,8 @@ Operacion.prototype.Comprar = function(){
 			parametros.amount = amount;
 			if(parametros.amount >= 0.01){
 				//this.trader.placeOrder(parametros);
-				console.log(" Compro "+parametros);
+				console.log(" Compro cantidad:"+parametros.amount+" precio: " + parametros.rate);
+				this.VerificarOrdenTestCompra(parametros);
 				//setTimeout(function(){this.VerificarOrden();},10000);
 			}
 			else{
@@ -106,8 +115,13 @@ Operacion.prototype.Comprar = function(){
 		}
 		else console.log(err);
 	};
-
-	this.trader.getDepth({},_.bind(callbackDepth,this));
+	if(this.config.usd > 0){
+		this.trader.getDepth({},_.bind(callbackDepth,this));	
+	}
+	else{
+		console.log("No hay plata para comprar o ya se compro.");
+	}
+	
 }
 
 Operacion.prototype.Vender = function(){
@@ -140,7 +154,8 @@ Operacion.prototype.Vender = function(){
 				parametros.amount = sell;
 				if(parametros.amount>=0.01){
 					//this.trader.placeOrder(parametros);
-					console.log(" Vendio "+parametros);
+					console.log(" Vendio cantidad:"+parametros.amount+" precio: " + parametros.rate);
+					this.VerificarOrdenTestVenta(parametros);
 					//setTimeout(function(){this.VerificarOrden();},10000);
 				}
 				else{
@@ -149,8 +164,13 @@ Operacion.prototype.Vender = function(){
 			}
 			else console.log(err);
 		};
-
-		this.trader.getDepth({},_.bind(callbackDepth,this));
+		if(this.InitialItemAmount > 0){
+			this.trader.getDepth({},_.bind(callbackDepth,this));	
+		}
+		else{
+			console.log("No hay moneda para vender o ya se vendio.");
+		}
+		
 }
 
 
@@ -188,3 +208,17 @@ Operacion.prototype.VerificarOrden = function(){
 	}
 	this.trader.getInfoAccount(_.bind(callbackGetInfoAccount,this));
 }
+
+
+Operacion.prototype.VerificarOrdenTestVenta = function(parametros){
+	this.config.usd += parametros.amount * parametros.rate;
+	this.config.InitialItemAmount -= parametros.amount;
+}
+
+Operacion.prototype.VerificarOrdenTestCompra = function(parametros){
+	this.config.usd -= parametros.amount * parametros.rate;
+	this.config.InitialItemAmount += parametros.amount;
+}
+
+
+

@@ -1,22 +1,19 @@
 var _ = require('lodash');
-var EventEmitter = require('events').EventEmitter;
-var Util = require('util');
 
-function Candle (con,Trader){
+function Candle (con,Trader,Opera){
 	"use strict";
 
     if(!(this instanceof Candle))
-        return new Candle(con,Trader);
-
+        return new Candle(con,Trader,Opera);
 //var MONGOHQ_URL="mongodb://nodejitsu:de9720a1df0ff9ea226b0d60eaa61459@linus.mongohq.com:10032/nodejitsudb5735702882";
     this.candlePeriod = con.candlePeriod;
     this.pair = con.pair;
 	this.timeLastCandle = 0;
+    this.Operacion = Opera;
     this.btcePublic = Trader;
 	_.bindAll(this);
 }
 
-Util.inherits(Candle, EventEmitter);
 
 module.exports = Candle;
 
@@ -77,7 +74,7 @@ Candle.prototype.createNewCandle = function(db) {
                             if (!err){
                                 //aca se dispara el evento
                                 this.timeLastCandle +=this.candlePeriod;
-                                this.emit('newCandle',result);
+                                this.Operacion.Operar(result[0]);
                                 console.log(result);
                             }
                             else{
