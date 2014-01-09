@@ -1,10 +1,10 @@
 var _ = require('lodash');
 
-function Operacion (Calculo,Trader,Config){
+function Operacion(Calculo, Trader, Config) {
 	"use strict";
 
 	if(!(this instanceof Operacion))
-		return new Operacion(Calculo,Trader,Config);
+		return new Operacion(Calculo, Trader, Config);
 
 	this.config = Config;
 	this.calculo = Calculo;
@@ -50,7 +50,7 @@ Operacion.prototype.Verificar = function(){
 
 	if((s1*s2*sUC)>0){
 		if(this.primeraCondicion){
-			this.Comprar();	
+			this.Comprar();			
 		}
 		else
 			this.primeraCondicion = true;
@@ -105,7 +105,7 @@ Operacion.prototype.Comprar = function(){
 			parametros.amount = amount;
 			if(parametros.amount >= 0.01){
 				//this.trader.placeOrder(parametros);
-				console.log(" Compro cantidad:"+parametros.amount+" precio: " + parametros.rate);
+				console.log(" TengoUSD:"+this.config.usd+" Item: "+this.config.InitialItemAmount);
 				this.VerificarOrdenTestCompra(parametros);
 				//setTimeout(function(){this.VerificarOrden();},10000);
 			}
@@ -154,7 +154,7 @@ Operacion.prototype.Vender = function(){
 				parametros.amount = sell;
 				if(parametros.amount>=0.01){
 					//this.trader.placeOrder(parametros);
-					console.log(" Vendio cantidad:"+parametros.amount+" precio: " + parametros.rate);
+					console.log(" TengoUSD:"+this.config.usd+" Item: "+this.config.InitialItemAmount);				
 					this.VerificarOrdenTestVenta(parametros);
 					//setTimeout(function(){this.VerificarOrden();},10000);
 				}
@@ -164,7 +164,7 @@ Operacion.prototype.Vender = function(){
 			}
 			else console.log(err);
 		};
-		if(this.InitialItemAmount > 0){
+		if(this.config.InitialItemAmount > 0){
 			this.trader.getDepth({},_.bind(callbackDepth,this));	
 		}
 		else{
@@ -211,13 +211,17 @@ Operacion.prototype.VerificarOrden = function(){
 
 
 Operacion.prototype.VerificarOrdenTestVenta = function(parametros){
+	console.log(" Vendio cantidad:"+parametros.amount+" precio: " + parametros.rate);
 	this.config.usd += parametros.amount * parametros.rate;
 	this.config.InitialItemAmount -= parametros.amount;
+	console.log(" Me quedo con USD:"+this.config.usd+" ITEM: "+this.config.InitialItemAmount);
 }
 
 Operacion.prototype.VerificarOrdenTestCompra = function(parametros){
+	console.log(" Compro cantidad:"+parametros.amount+" precio: " + parametros.rate);
 	this.config.usd -= parametros.amount * parametros.rate;
 	this.config.InitialItemAmount += parametros.amount;
+	console.log(" Me quedo con USD:"+this.config.usd+" ITEM: "+this.config.InitialItemAmount);
 }
 
 

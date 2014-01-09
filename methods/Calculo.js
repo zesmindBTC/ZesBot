@@ -66,13 +66,6 @@ Calculo.prototype.NuevoValor = function(candle){
 	
 	this.regresionLinealPendiente.push(this.CalcularRegresionLinealPendiente());
 	this.regresionLinealOrdenada.push(this.CalcularRegresionLinealOrdenada());
-	console.log(this.primerWMA);
-	console.log(this.segundoWMA);
-	console.log(this.HMA);
-	console.log(this.derivada1);
-	console.log(this.derivada2);
-	console.log(this.regresionLinealPendiente);
-	console.log(this.regresionLinealOrdenada);
 }
 
 Calculo.prototype.WMA = function(parametros){
@@ -89,17 +82,17 @@ Calculo.prototype.WMA = function(parametros){
 		sumaDenominador += (i+1);
 	};
 
- 	return (sumaParcial/sumaDenominador);
+ 	return this.Redondear(sumaParcial/sumaDenominador);
 }
 
 Calculo.prototype.CalculoDerivada1 = function(){
 	"use strict";
-	return (this.HMA[this.HMA.length-1]-this.HMA[this.HMA.length-2])/(this.timestamps[this.timestamps.length-1]-this.timestamps[this.timestamps.length-2]);
+	return this.Redondear((this.HMA[this.HMA.length-1]-this.HMA[this.HMA.length-2])/(this.timestamps[this.timestamps.length-1]-this.timestamps[this.timestamps.length-2]));
 }
 
 Calculo.prototype.CalculoDerivada2 = function(){
 	"use strict";
-	return (this.derivada1[this.derivada1.length-1]-this.derivada1[this.derivada1.length-2])/(this.timestamps[this.timestamps.length-1]-this.timestamps[this.timestamps.length-2]);
+	return this.Redondear((this.derivada1[this.derivada1.length-1]-this.derivada1[this.derivada1.length-2])/(this.timestamps[this.timestamps.length-1]-this.timestamps[this.timestamps.length-2]));
 }
 
 Calculo.prototype.CalcularRegresionLinealPendiente = function(){
@@ -127,7 +120,7 @@ Calculo.prototype.CalcularRegresionLinealPendiente = function(){
 	};
 
 	if(sumatoriaDenominador != 0)
-		return sumatoriaNumerador/sumatoriaDenominador;
+		return this.Redondear(sumatoriaNumerador/sumatoriaDenominador);
 	else
 		throw new Error("El denominador es 0..cagaste");
 }
@@ -148,5 +141,13 @@ Calculo.prototype.CalcularRegresionLinealOrdenada = function(){
 	promedioTime = sumaTime/this.timestamps.length;
 	promedioValores = sumaValores/this.valores.length;
 	
-	return promedioValores-(this.regresionLinealPendiente[this.regresionLinealPendiente.length-1]*promedioTime);
+	return this.Redondear(promedioValores-(this.regresionLinealPendiente[this.regresionLinealPendiente.length-1]*promedioTime));
+}
+
+
+Calculo.prototype.Redondear = function(valor){
+	valor *= 1000000000;
+	valor = Math.floor(valor);
+	valor /= 1000000000;
+	return valor;
 }

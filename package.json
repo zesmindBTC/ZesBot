@@ -15,8 +15,9 @@
   "dependencies": {
     "request": "2.16.6",
     "mongodb": "*",
+    "async": "*",
     "btce": "*",
-	"lodash":"*"
+	 "lodash":"*"
   },
   "main": "index.js",
   "engines": {
@@ -25,6 +26,6 @@
   "version": "0.0.11-5",
   "subdomain": "zesmind-registradorDatos3",
   "scripts": {
-    "start": "node index.js"
+    "start": "node app.js"
   }
 }
