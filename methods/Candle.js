@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var async = require('async');
 
 function Candle (con,Trader,Opera){
 	"use strict";
@@ -12,6 +11,7 @@ function Candle (con,Trader,Opera){
 	this.timeLastCandle = 0;
     this.Operacion = Opera;
     this.btcePublic = Trader;
+    this.contador = 0;
 	_.bindAll(this);
 }
 
@@ -75,7 +75,7 @@ Candle.prototype.createNewCandle = function(db) {
                             if (!err){
                                 //aca se dispara el evento
                                 this.timeLastCandle +=this.candlePeriod;
-                                console.log(result[0]);
+                                //console.log(result[0]);
                                 //this.Operacion.Operar(result[0]);
                             }
                             else{
@@ -99,7 +99,7 @@ Candle.prototype.createNewCandle = function(db) {
 
         //si el timeLastCandle es = 0, lo cargo con el timeServer actual del ticker
         if (this.timeLastCandle ===0 ){
-            this.actualizarCandles(db);
+            _.bind(this.actualizarCandles(db),this);
         }
         else {  //Si timeLastCandle es <> 0, entonces verfico si se cumplio el lapso de una candlea nueva
             //Levanto el ultimo trade para hacer la diferencia respecto del ultimo candle y verificar si se cumplio el lapso
@@ -134,35 +134,22 @@ Candle.prototype.createFirstCandle = function(db, timeServer) {
         collectionCandles = db.collection("candles");
 
         var timeActual = timeServer;
-        var self = this;
 
         //creo el indice para las candles
         db.collection('candles', function(err,collection){
 		collection.ensureIndex({'timeOpen':1}, function(){})
 		});
+        var contadorb = 0;
+        
+		for (var i=1;i<300;i++){
+			//console.log("i: "+i);
+			this.createCandle(timeActual-(this.candlePeriod*(300-i)),timeActual-(this.candlePeriod*(299-i)),db);
+			 if (i===299) {
+			      this.actualizarTimeLastCandle(db);
+			 };
+		}
+	    
 
-        var operarNico = function(err,result) {
-       		 if (!err) {
-            	if (result.length > 0 ){
-            		result.forEach(function(a){
-            			//this.Operacion.Operar(a);
-            			console.log(a);
-            		});
-            	}
-
-            }
-
-
-        }
-	     _.bind(async.series([function () {
-		        	for (var i=1;i<300;i++){
-			            self.createCandle(timeActual-(self.candlePeriod*(300-i)),timeActual-(self.candlePeriod*(299-i)),db);
-			            if (i===299) {
-			                    self.actualizarTimeLastCandle(db);
-			                };
-	        		}},function(){
-	        			 collectionCandles.find({},{sort: {'timeOpen':1},limit:300}).toArray(_.bind(operarNico,self));;
-	        		}]),this);
 }
 
 Candle.prototype.createCandle = function (tInicio, tFin,db) {
@@ -170,6 +157,33 @@ Candle.prototype.createCandle = function (tInicio, tFin,db) {
     var timeFin = tFin;
     var collectionTrades = db.collection("trades"),
             collectionCandles = db.collection("candles");
+
+    var self = this;
+
+
+		var operarNico = function(err,result) {
+       		 if (!err) {
+            	if (result.length > 0 ){
+            		result.reverse();
+            		result.forEach(function(a){
+            			//this.Operacion.Operar(a);
+            			console.log(a);
+            		});
+            	}
+
+            }
+        }
+
+        var final  = function(){
+            if (isNaN(this.contador)) {this.contador = 0};
+        	this.contador += 1;
+        	//console.log("contador: " + this.contador);
+        	if (this.contador===299){
+	        	collectionCandles.find({},{sort: {'timeOpen':-1},limit:200}).toArray(_.bind(operarNico,self));
+	    	}
+	    };
+
+
 
         var callbackTradesPeriodoCandle = function(err,result){
         var openPrice= 0,
@@ -187,6 +201,7 @@ Candle.prototype.createCandle = function (tInicio, tFin,db) {
             var timeFinI = timeFin;
 
         if (!err) {
+            final();
             if (result.length > 0 ){
                 //genero la candlea
                 openPrice = result[0].price;
@@ -224,26 +239,29 @@ Candle.prototype.createCandle = function (tInicio, tFin,db) {
                         //incremento el tiempo de la ultima candlea
                         if (!err){
                             //aca se dispara el evento
-                                console.log(result);
-
+                               // console.log(result);
                         }
                         else{
                             console.log(err);
                         }
                     };
-                    collectionCandles.insert(candle, _.bind(callbackInsert,this));
+                    collectionCandles.insert(candle, _.bind(callbackInsert,self));
                 }
                 else{
                     //hubo un problema en el calculo de la candlea, lanzo error.
                 }
             }
+            else {
+            	//console.log("length = 0");
+            }
         }
-        else{
+       else{
             //no hay trades en la DB, no hago nada. Lanzo error
-        }
+            //console.log("no hay candle")
+       }
     }
     try {
-        collectionTrades.find({date: {$gte:tInicio, $lt:tFin}}).toArray(_.bind(callbackTradesPeriodoCandle,this));;
+        collectionTrades.find({date: {$gte:tInicio, $lt:tFin}}).toArray(_.bind(callbackTradesPeriodoCandle,self));
     }
     catch(err)
         {
@@ -266,8 +284,7 @@ Candle.prototype.actualizarTimeLastCandle = function(db) {
 	    }
 	}
 
-	var llamarMetodoNico = 
-
+	//var llamarMetodoNico = 
 	this.btcePublic.getTicker(this.pair, _.bind(callbackTicker,this));
 }
 
@@ -276,7 +293,7 @@ Candle.prototype.actualizarCandles = function(db) {
    var timeServer;
        if (!err) {
            try{
-               this.createFirstCandle(db,data.ticker.server_time);
+             _.bind(this.createFirstCandle(db,data.ticker.server_time));
                }
            catch (err) {
 
