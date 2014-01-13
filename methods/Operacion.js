@@ -21,11 +21,11 @@ Operacion.prototype.Operar = function(candle){
 	if(candle){
 		this.calculo.NuevoValor(candle);
 		
-		this.contadorPrueba += 1;
+		// this.contadorPrueba += 1;
 
-		if(this.contadorPrueba > this.config.candlesCount){
-			this.Verificar();	
-		}	
+		// if(this.contadorPrueba > this.config.candlesCount){
+		// 	this.Verificar();	
+		// }	
 	}
 	else
 		console.log("No llego ninguna candle");
@@ -41,25 +41,26 @@ Operacion.prototype.Verificar = function(){
 
 	if(this.calculo.derivada2[this.config.candlesCount-1] * this.calculo.derivada2[this.config.candlesCount-2] <= 0)
 		s1 = 1;
-	if(this.calculo.derivada2[this.config.candlesCount-1] > 0)
+	if(this.calculo.derivada2[this.config.candlesCount] > 0)
 		s2 = 1;
 
-	if(Math.abs(this.calculo.derivada1[this.config.candlesCount-1])>sUC){
+	if(Math.abs(this.calculo.derivada1[this.config.candlesCount-1])>=sUC){
 		sUC = 1;
 	}
 
 	if((s1*s2*sUC)>0){
 		if(this.primeraCondicion){
-			this.Comprar();			
+			//this.Comprar();			
+			console.log(this.valores)
 		}
 		else
 			this.primeraCondicion = true;
 	}	
 		
-	if(this.calculo.derivada2[this.config.candlesCount-1] < 0)
+	if(this.calculo.derivada2[this.config.candlesCount-2] > 0)
 		s3 = 1;
 
-	if(Math.abs(this.calculo.derivada1[this.config.candlesCount-1])>sUV){
+	if(Math.abs(this.calculo.derivada1[this.config.candlesCount-1])>=sUV){
 		sUV = 1;
 	}
 
@@ -71,6 +72,34 @@ Operacion.prototype.Verificar = function(){
 			this.primeraCondicion = true;
 	}		
 }
+
+Operacion.prototype.VerificarNADLP = function(){
+
+	//CONDICION OPERAR
+	if(this.calculo.DE[this.config.candlesCount-1] > this.config.minimoDesviacionEstandar){
+		//CONDICION COMPRA
+		if(this.calculo.HMA[this.config.candlesCount-1] < this.calculo.valores[this.config.candlesCount-1]){
+			if(this.RSI[this.config.candlesCount-1] > this.config.RSIlimiteSuperior){
+				if(this.primeraCondicion){
+					this.Comprar();			
+				}
+				else
+					this.primeraCondicion = true;
+			}
+		}
+		else{
+			if(this.RSI[this.config.candlesCount-1] < this.config.RSIlimiteInferior){
+				if(this.primeraCondicion){
+					this.Vender();	
+				}
+				else
+					this.primeraCondicion = true;
+			}
+		}
+	}
+}
+
+
 
 Operacion.prototype.Comprar = function(){
 	
@@ -96,6 +125,7 @@ Operacion.prototype.Comprar = function(){
 				}
 				
 			};
+			console.log(data.asks);
 			//Redondeamos a 8 decimales
 			amount = (sellUSD/actualPrice);
 			amount *= 100000000;
@@ -105,6 +135,7 @@ Operacion.prototype.Comprar = function(){
 			parametros.amount = amount;
 			if(parametros.amount >= 0.01){
 				//this.trader.placeOrder(parametros);
+				console.log(data.asks);
 				console.log(" TengoUSD:"+this.config.usd+" Item: "+this.config.InitialItemAmount);
 				this.VerificarOrdenTestCompra(parametros);
 				//setTimeout(function(){this.VerificarOrden();},10000);
@@ -146,6 +177,7 @@ Operacion.prototype.Vender = function(){
 					}
 					
 				};
+
 				parametros.rate = actualPrice;
 				//se redondea a 8 decimales
 				sell *= 100000000;
@@ -154,6 +186,7 @@ Operacion.prototype.Vender = function(){
 				parametros.amount = sell;
 				if(parametros.amount>=0.01){
 					//this.trader.placeOrder(parametros);
+					console.log(data.bids);
 					console.log(" TengoUSD:"+this.config.usd+" Item: "+this.config.InitialItemAmount);				
 					this.VerificarOrdenTestVenta(parametros);
 					//setTimeout(function(){this.VerificarOrden();},10000);

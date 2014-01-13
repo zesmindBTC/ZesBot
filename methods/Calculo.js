@@ -12,6 +12,8 @@ function Calculo (con){
 	this.segundoWMA = Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
 	this.vectorCalculadoHMA = Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
 	this.HMA = Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
+	this.RSI = Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
+	this.DE = Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
 	this.derivada1 = Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
 	this.derivada2= Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
 	this.regresionLinealPendiente = Array.apply(null, new Array(con.candlesCount)).map(Number.prototype.valueOf,0);
@@ -36,6 +38,7 @@ Calculo.prototype.NuevoValor = function(candle){
 	this.segundoWMA.shift();
 	this.vectorCalculadoHMA.shift();
 	this.HMA.shift();
+	this.RSI.shift();
 	this.derivada1.shift();
 	this.derivada2.shift();
 	this.regresionLinealOrdenada.shift();
@@ -61,11 +64,16 @@ Calculo.prototype.NuevoValor = function(candle){
 
 	this.HMA.push(this.WMA(parametros));
 
-	this.derivada1.push(this.CalculoDerivada1());
-	this.derivada2.push(this.CalculoDerivada2());
-	
-	this.regresionLinealPendiente.push(this.CalcularRegresionLinealPendiente());
-	this.regresionLinealOrdenada.push(this.CalcularRegresionLinealOrdenada());
+	this.RSI.push(this.CalcularRSI());
+
+	this.DE.push(this.DesviacionEstandar());
+
+	console.log("DE CALCULADO: " + this.DE[this.DE.length-1]);
+
+	// this.derivada1.push(this.CalculoDerivada1());
+	// this.derivada2.push(this.CalculoDerivada2());	
+	// this.regresionLinealPendiente.push(this.CalcularRegresionLinealPendiente());
+	// this.regresionLinealOrdenada.push(this.CalcularRegresionLinealOrdenada());
 }
 
 Calculo.prototype.WMA = function(parametros){
@@ -151,3 +159,52 @@ Calculo.prototype.Redondear = function(valor){
 	valor /= 1000000000;
 	return valor;
 }
+
+Calculo.prototype.CalcularRSI = function(){
+	
+	var sumarUp = 0,
+		contadorUp = 0,
+		contadorDown = 0,
+		dif = 0,
+		sumarDown = 0;
+
+	for (var i = this.valores.length-1; i > (this.valores.length-1)-this.config.periodoRSI; i--) {
+		dif = this.valores[i] - this.valores[i-1];
+		if(dif>0){
+			sumarUp+=dif;
+			contadorUp+=1;
+		}
+		else{
+			sumarDown+=Math.abs(dif);
+			contadorDown+=1;
+		}
+	};
+
+	sumarUp/=contadorUp;
+	sumarDown /=contadorDown;
+
+	if(sumarDown === 0)
+		return 100;
+	else if(sumarUp === 0)
+		return 0;
+	else
+		return this.Redondear(100 - (100/(1+(sumarUp/sumarDown))));	
+}
+
+Calculo.prototype.DesviacionEstandar = function(){
+	var media = 0,
+		suma = 0;
+
+	for (var i = this.valores.length-1; i > (this.valores.length-1)-this.config.periodoDesviacionEstandar; i--) {
+		media +=this.valores[i];
+	};
+
+	media/=this.config.periodoDesviacionEstandar;
+
+	for (var i = this.valores.length-1; i > (this.valores.length-1)-this.config.periodoDesviacionEstandar; i--) {
+		suma+= Math.pow(this.valores[i] - media,2);
+	};
+
+	return Math.sqrt(suma/(this.config.periodoDesviacionEstandar-1));
+}
+

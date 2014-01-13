@@ -75,8 +75,8 @@ Candle.prototype.createNewCandle = function(db) {
                             if (!err){
                                 //aca se dispara el evento
                                 this.timeLastCandle +=this.candlePeriod;
-                                //console.log(result[0]);
-                                //this.Operacion.Operar(result[0]);
+                                console.log(result[0]);
+                                this.Operacion.Operar(result[0]);
                             }
                             else{
                                 console.log(err);
@@ -99,7 +99,7 @@ Candle.prototype.createNewCandle = function(db) {
 
         //si el timeLastCandle es = 0, lo cargo con el timeServer actual del ticker
         if (this.timeLastCandle ===0 ){
-            _.bind(this.actualizarCandles(db),this);
+            this.actualizarCandles(db);
         }
         else {  //Si timeLastCandle es <> 0, entonces verfico si se cumplio el lapso de una candlea nueva
             //Levanto el ultimo trade para hacer la diferencia respecto del ultimo candle y verificar si se cumplio el lapso
@@ -139,15 +139,15 @@ Candle.prototype.createFirstCandle = function(db, timeServer) {
         db.collection('candles', function(err,collection){
 		collection.ensureIndex({'timeOpen':1}, function(){})
 		});
-        var contadorb = 0;
-        
+        console.time("creacion-candles");
 		for (var i=1;i<300;i++){
-			//console.log("i: "+i);
 			this.createCandle(timeActual-(this.candlePeriod*(300-i)),timeActual-(this.candlePeriod*(299-i)),db);
 			 if (i===299) {
-			      this.actualizarTimeLastCandle(db);
+                this.timeLastCandle = timeActual;
+			      //this.actualizarTimeLastCandle(db);
 			 };
 		}
+        console.timeEnd("creacion-candles");
 	    
 
 }
@@ -164,10 +164,11 @@ Candle.prototype.createCandle = function (tInicio, tFin,db) {
 		var operarNico = function(err,result) {
        		 if (!err) {
             	if (result.length > 0 ){
+
             		result.reverse();
+                    console.log(result.length);
             		result.forEach(function(a){
-            			//this.Operacion.Operar(a);
-            			console.log(a);
+        	            self.Operacion.Operar(a);
             		});
             	}
 
@@ -283,8 +284,6 @@ Candle.prototype.actualizarTimeLastCandle = function(db) {
 	        }
 	    }
 	}
-
-	//var llamarMetodoNico = 
 	this.btcePublic.getTicker(this.pair, _.bind(callbackTicker,this));
 }
 
@@ -293,7 +292,7 @@ Candle.prototype.actualizarCandles = function(db) {
    var timeServer;
        if (!err) {
            try{
-             _.bind(this.createFirstCandle(db,data.ticker.server_time));
+                this.createFirstCandle(db,data.ticker.server_time);
                }
            catch (err) {
 

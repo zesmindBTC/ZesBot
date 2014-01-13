@@ -16,7 +16,7 @@ mongoClient.connect(config.mongodbConnection, function(err, db) {
 
 		setInterval(function(){
 			Candela.createNewCandle(db);
-		},3000);
+		},30000);
 
 	}
 	catch(err){
